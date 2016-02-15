@@ -1,0 +1,3 @@
+[submodule "me.apla.cordova.app-preferences"]
+	path = me.apla.cordova.app-preferences
+	url = https://github.com/vladimir-kotikov/cordova-app-preferences.git
