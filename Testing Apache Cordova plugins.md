@@ -1,11 +1,8 @@
+Здравствуй, читатель. Я собираюсь рассказать об одной из тем, касающихся Apache Cordova, которая практически не освещена в рунете - как тестировать свой плагин для Apache Cordova.
 
-# Тестирование плагинов Apache Cordova
+В рамках этой статьи мы будем тестировать только JavaScript код, поскольку такие тесты довольно легко внедрить и зачастую их будет достаточно. Конечно, как правило плагины содержат и нативный код для каждой из поддерживаемых платформ, который тоже неплохо было бы покрыть unit-тестами, но мы пока оставим этот вопрос за кадром, поскольку этот аспект тестирования плагинов практически не распространен и остуствует какой либо инструментарий для такого тестирования. В любом случае, код JavaScript как правило вызывает нативную логику, и поэтому наши тесты будут косвенно тестировать и реализацию под каждую платформу.
 
-Статья предназначена для разработчиков плагинов, которые хотели бы добавить тесты для своих плагинов.
-
-Речь пойдет о тестировании JavaScript кода. Поскольку именно эта часть плагина предоставляет внешний интерфейс и будет доступна в рабочем приложении. то наши тесты будут тестировать приложение как черный ящик, без учета деталей внутренней реализации плагина.
-
-Конечно, зачастую плагины содержат и нативный код для каждой из поддерживаемых платформ, который тоже неплохо было бы покрыть unit-тестами, но мы пока оставим этот вопрос за кадром, поскольку этот аспект тестирования плагинов практически не распространен и остуствует какой либо инструментарий для такого тестирования.
+<cut />
 
 ## Немного теории
 
@@ -14,7 +11,7 @@
 1. Собственно тесты, использующие ту или иную библиотеку для тестирования.
 2. Так называемая test harness, или часть кода ответственная за запуск тестов и генерацию результатов теста.
 
-В случае с плагинами, для написания тестов используется Jasmine 2.2 - довольно популярный BDD-фреймворк. Соответственно ваши будущие тесты могут выглядеть примерно так (отрывок взят из тестов для [cordova-plugin-device](https://github.com/apache/cordova-plugin-device) - одного из плагинов, поддерживаемых сообществом Apache Cordova):
+В случае с плагинами в качестве библиотеки используется BDD-фреймворк Jasmine - довольно популярный в JavaScript мире. Соответственно будущие тесты могут выглядеть примерно так (отрывок взят из тестов для [`cordova-plugin-device`](https://github.com/apache/cordova-plugin-device) - одного из плагинов, поддерживаемых сообществом Apache Cordova):
 
 ```javascript
 it("should exist", function() {
@@ -34,12 +31,18 @@ it("should contain a version specification that is a string", function() {
 
 Если с кодом тестов все достаточно ясно и понятно, то для того чтобы их запустить, необходимо проделать дополнительные манипуляциию
 
-Самым простым способом здесь будет использование [cordova-plugin-test-framework](https://github.com/apache/cordova-plugin-test-framework) - другого плагина, который добавляет в приложение интерфейс для запуска тестов в виде отдельной страницы с элементами упраления для запуска, остановки и выбора тестов для запуска, а так же осуществляет загрузку всех обьявленных тестов во время работы приложения и их запуск.
+Самым простым способом здесь будет использование [`cordova-plugin-test-framework`](https://github.com/apache/cordova-plugin-test-framework) - еще одного плагина, который добавляет в приложение интерфейс для запуска тестов в виде отдельной страницы с элементами упраления для запуска, остановки и выбора тестов для запуска, а так же осуществляет загрузку всех обьявленных тестов во время работы приложения и их запуск.
 
-README плагина описывает, как он работает и как нужно добалять тесты, чтобы они были добавлены в test-framework, однако содержит некоторые неточности, поэтому вкратце приведу основные тезисы здесь.
+Вот как это выглядит в работе:
+
+<img src="https://habrastorage.org/files/849/5b5/80b/8495b580bfae484d8d7124392e0b0b0a.png" width="300"/> <img src="https://habrastorage.org/files/1c7/4b2/ee2/1c74b2ee2410412c870d45577939ca40.png" width="300"/>
+
+Кроме того `test-framework` предоставляет возможность быстро создать т.н. ручные тесты - создать несколько кнопок на отдельной странице с описанием действий связанных с нажатием на каждую кнопку и ожидаемого поведения приложения.
+
+README плагина описывает, как он работает и как нужно добалять тесты, чтобы они были добавлены в `test-framework`, однако содержит некоторые неточности, поэтому вкратце приведу основные тезисы здесь.
 
 1. Для обьявления тестов их нужно выделить в отдельный плагин. Расположение плагина не критично, но часто он находится внутри подпапки `/tests` основного плагина.
-2. Сами тесты должны находиться в модуле с именем, оканчивающимся на `.tests`, (например `<js-module src="tests/tests.js" name="my.plugin.tests">`)
+2. Сами тесты должны находиться в модуле с именем, оканчивающимся на `tests`, (например `<js-module src="tests/tests.js" name="my.plugin.tests">`)
 3. Модуль с тестами должен экспортировать две функции:
 
 ```javascript
@@ -49,31 +52,25 @@ exports.defineManualTests = function(contentEl, createActionButton) {};
 
 которые будут выполнены при загрузке модуля. Название функций говорит само за себя.
 
-4. Полезно так же будет добавить `cordova-plugin-test-framework` в качестве зависимости для ваших тестов, чтобы он устанавливался автоматически при установке плагина с тестами. Это делается добавлением следующего элемента в `tests/plugin.xml`:
+4. Полезно так же будет добавить `cordova-plugin-test-framework` - а возможно еще и тестируемый плагин - в качестве зависимости для ваших тестов, чтобы они устанавливались автоматически вместе с тестами. Это делается добавлением следующих элементов в `tests/plugin.xml`:
 
 ```xml
 <dependency id="cordova-plugin-test-framework"/>
+<dependency id="my-awesome-plugin" url=".." />
 ```
 
 ## Создаем каркас плагина
 
-Итак, после того, как все подготовлено для написания, какркас плагина будет выглядеть следующим образом:
-
-```
-my-awesome-plugin/
-|--tests/
-|  |--plugin.xml
-|  |--tests.js
-... 
-```
+Итак, после того, как все подготовлено для написания, какркас плагина должен выглядеть примерно следующим образом:
+<img src="https://habrastorage.org/files/1d3/7fc/e7b/1d37fce7b4724be3a805f1a56f4598ee.JPG"/><br>
 
 `plugin.xml` будет выглядеть так:
-
 ```xml
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="my-awesome-tests" version="0.0.1">
     <name>My Awesome Plugin Tests</name>
     <dependency id="cordova-plugin-test-framework" />
+    <dependency id="my-awesome-plugin" url=".." />
     <js-module src="tests.js" name="tests" />
 </plugin>
 ```
@@ -84,18 +81,15 @@ my-awesome-plugin/
 exports.defineAutoTests = function() {
     // To be done
 };
-exports.defineManualTests = function(contentEl, createActionButton) {
+exports.defineManualTests = function(content, createActionButton) {
     // To be done
 };
 ```
 
-<!-- TODO:
-    1. уточнить название переменной
-    2. Установка plugman
--->
-Это можно сделать вручную в вашем `$EDITOR`, а можно использовать `plugman`:
+Это можно сделать вручную в вашем `$EDITOR`, а можно использовать `plugman` - еще один инструмент для работы с плагинами Apache Cordova:
 
-    plugman create --name "My awesome plugin tests" --plugin_id my-awesome-plugin-tests --plugin_version 0.0.1
+    npm install -g plugman
+    plugman create --name "My awesome plugin tests" --plugin_id my-awesome-plugin-tests --plugin_version 0.0.1 --path=./tests
 
 чтобы сгенерировать каркас плагина и отредактировать файлы вручную.
 
@@ -103,62 +97,58 @@ exports.defineManualTests = function(contentEl, createActionButton) {
 
 Теперь перейдем непосредственно к написанию тестов. Те кто уже знакомы с BDD и jasmine могут пропустить этот раздел, т.к. ничего нового здесь не будет, и перейти к следующему.
 
-Чтобы не приводить абстрактных примеров я решил взять плагин `me.apla.cordova.app-preferences` от небезызвестного **[@apla](https://github.com/apla)**.
+Примеры далее в этой статье основаны на простом плагине, написанном за 10 минут в демонстрационных целях. Код плагина можно найти на [GitHub](https://github.com/vladimir-kotikov/my-awesome-plugin).
 
 Итак, сначала создаем каркас тестового плагина, как описано в предыдущем разделе и начинаем наполнять его тестами.
 
 ```javascript
 exports.defineAutoTests = function() {
     describe('plugin', function() {
-        it('should be exposed as plugins.appPreferences object', function() {
-            expect(window.plugins.appPreferences).toBeDefined();
-            expect(cordova.require('cordova-plugin-app-preferences.apppreferences'))
-                .toBe(window.plugins.appPreferences);
+        it('should be exposed as cordova.plugins.MyAwesomePlugin object', function() {
+            expect(cordova.plugins.MyAwesomePlugin).toBeDefined();
+            expect(cordova.require('my-awesome-plugin.MyAwesomePlugin'))
+                .toBe(cordova.plugins.MyAwesomePlugin);
         });
 
         it('should have corresponding methods defined', function() {
-            ['store', 'fetch', 'remove', 'show', 'iosSuite'].forEach(function(methodName) {
-                expect(window.plugins.appPreferences[methodName]).toBeDefined();
-                expect(window.plugins.appPreferences[methodName]).toEqual(jasmine.any(Function));
+            ['coolMethod', 'logCoolMessage'].forEach(function(methodName) {
+                expect(cordova.plugins.MyAwesomePlugin[methodName]).toBeDefined();
+                expect(cordova.plugins.MyAwesomePlugin[methodName]).toEqual(jasmine.any(Function));
             });
         });
     });
-});
+};
 ```
 
-Пока этого достаточно. Теперь создадим тестовое приложение и запустим наши тесты. Для этого нужно выполнить следующие команды:
+Пока этого достаточно. Теперь создадим тестовое приложение и запустим наши тесты. Для этого выполняем следующие команды в папке с _тестируемым_ плагином:
 
-    cordova create TestApp && cd testApp
+    cordova create my-sample-app && cd my-sample-app
     cordova platform add android --save
-    cordova plugin add ../MyAwesomePlugin ../MyAwesomePlugin/tests --save
+    cordova plugin add .. ../tests --save
 
-Теперь правим элемент `<content src="index.html" />` в файле `config.xml` внутри нашего тестового приложения и меняем значение на `cdvtests/index.html`. Это необходимо чтобы вместо основной стартовой страницы при запуске приложения открылась страница плагина и загрузился `test-framework`.
+и правим элемент `<content src="index.html" />` в файле `config.xml` внутри нашего тестового приложения - меняем значение на `cdvtests/index.html`. Это необходимо чтобы вместо основной стартовой страницы при запуске приложения открылась страница плагина и загрузился `test-framework`.
 
 Теперь запускаем приложение:
 
     cordova run
 
-<!-- TODO:
-    1. уточнить название кнопки
-    2. скриншот
--->
-и видим страницу с тестами, нажимаем "Autotests" и видим отчет jasmine об успешном завершении тестов.
+и видим страницу плагина. Нажимаем "Autotests" и практически сразу видим отчет jasmine об успешном завершении тестов.
+
+<img src="https://habrastorage.org/files/3da/721/f9b/3da721f9bb4046209e61fb9a4060576a.png" width="300"/><br>
 
 ## Добавляем ручные тесты
 
 Теперь, понимая как работает `test-framework`, можно без особых проблем написать любое количество автоматических тестов для вашего плагина.
 
-С ручными тестами все работает немного по другому. `test-framework` предполагает, что каждому тесту полагается отдельная кнопка в интерфейсе, которая выполняет какие-то действия и общее для всех тестов поле в которое можно вывести свои результаты. Это параметры `createActionButton` и `contentEl` соответственно для функции defineManualTests.
+С ручными тестами все работает немного по-другому. `test-framework` предполагает, что каждому тесту полагается отдельная кнопка в интерфейсе, которая выполняет какие-то действия и общее для всех тестов поле в которое можно вывести свои результаты. Это параметры `createActionButton` и `content` соответственно для функции `defineManualTests`.
 
 `createActionButton` это фунция, которая создает кнопку, добавляет ее в DOM внутрь указанного элемента и выполняет указанную функцию при нажатии кнопки. параметры фунции выглядят так:
 
-`function createActionButton('Текст кнопки', выполняемая_функция, 'ИД_элемента') {...}`
+    `function createActionButton('Текст кнопки', выполняемая_функция, 'ИД_элемента') {...}`
 
-`contentEl` это контейнер на странице, внутри которого можно поместить описание и назначение теста и описать процесс верификации для тестировщика.
+`content` это контейнер на странице, внутри которого можно поместить описание и назначение теста и описать процесс верификации для тестировщика.
 
-Попробуем определить один ручной тест:
-
-<!-- TODO: update `device_tests` variable name and text -->
+Для примера добавим один ручной тест:
 
 ```javascript
 exports.defineManualTests = function(contentEl, createActionButton) {
@@ -213,6 +203,7 @@ exports.defineManualTests = function(contentEl, createActionButton) {
 
 ```json
 "scripts": {
+    ...
     "test-android": "cordova-paramedic --platform android --plugin ./ --verbose",
     "test-ios": "cordova-paramedic --platform ios --plugin ./ --verbose"
 },
@@ -222,11 +213,10 @@ exports.defineManualTests = function(contentEl, createActionButton) {
 
     npm run test-android
 
-И через некоторое время получаем результаты тестов на консоль.
+И через некоторое время получаем результаты тестов на консоль:
 
 ```
 ...
-console-log:posting tests
 Results: ran 2 specs with 0 failures
 result code is : 0
 {"mobilespec":{"specs":2,"failures":0,"results":[]},"platform":"Desktop","version":"5.1.0","timestamp":1455530481,"model":"none"}
@@ -238,11 +228,6 @@ result code is : 0
 
 ```yaml
 language: objective-c
-before_install:
-  - git clone https://github.com/creationix/nvm.git /tmp/.nvm;
-    source /tmp/.nvm/nvm.sh;
-    nvm install 4.2.6;
-    nvm use --delete-prefix 4.2.6;
 install:
   - npm install
 script:
@@ -252,12 +237,6 @@ script:
 `circle.yml`
 
 ```yaml
-machine:
-  environment:
-    ANDROID_NDK_HOME: $ANDROID_NDK
-  node:
-    version: 4.2.6
-
 test:
   pre:
     - emulator -avd circleci-android21 -no-audio -no-window:
@@ -268,11 +247,14 @@ test:
     - npm run test-android
 ```
 
-Затем идем в панель управления соответствующего сервиса, включаем интеграцию с GitHub и наслаждаемся.
+Затем идем в панель управления соответствующего сервиса, включаем интеграцию с GitHub и наслаждаемся:
+
+<img src="https://habrastorage.org/files/422/757/600/4227576009d14b1691429b74d5799db5.JPG" width="300"/><br>
 
 ## Заключение
 
 Итак, теперь мы имеем плагин покрытый автоматическими тестами, умеем создавать и запускать тестовое приложение буквально одной-двумя строчками в терминале, и знаем состояние кода, обновляющееся per-commit.
 
-<!-- TODO: Add Github repo link -->
-Для тех кто хочет посмотреть на пример тестового плагина "живьем" - кот выложен на GitHub [здесь]()
+Напоследок еще раз приведу ссылку на демонстрационный плагин: https://github.com/vladimir-kotikov/my-awesome-plugin. Посмотреть этапы добавления тестов можно по истории коммитов.
+
+Удачного тестирования!

@@ -1,0 +1,28 @@
+{
+  "name": "MyAwesomePlugin",
+  "version": "0.0.1",
+  "description": "My really awesome plugin",
+  "cordova": {
+    "id": "my-awesome-plugin",
+    "platforms": []
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladimir-kotikov/my-awesome-plugin.git"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "scripts": {
+    "sample": "cordova create my-sample-app my.sample.app MySampleApp"
+  },
+  "author": "Vladimir Kotikov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vladimir-kotikov/my-awesome-plugin/issues"
+  },
+  "homepage": "https://github.com/vladimir-kotikov/my-awesome-plugin#readme",
+  "devDependencies": {
+    "cordova": "^6.0.0"
+  }
+}
